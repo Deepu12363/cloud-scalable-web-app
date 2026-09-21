@@ -6,4 +6,12 @@ node_modules/
 
 dist/
 
+build/
+coverage/
+logs/
+*.log
+.vscode/
+.DS_Store
+Thumbs.db
+
 npm-debug.log*
