@@ -56,6 +56,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Run frontend tests
+        run: npm test
+
       - name: Build frontend
         run: npm run build
 
@@ -72,3 +75,6 @@ jobs:
 
       - name: Build Compose images
         run: docker compose build
+
+      - name: Run backend tests in the Docker test image
+        run: docker compose run --build --rm backend-test

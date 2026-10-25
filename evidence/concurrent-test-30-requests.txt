@@ -1,0 +1,13 @@
+﻿Concurrent Request Test
+Date: 2026-10-24 18:45:56
+Endpoint: http://localhost:8081/api/health
+Total requests: 30
+Successful requests: 30
+Failed requests: 0
+Average response time (ms): 1799.13
+Maximum response time (ms): 2662.87
+
+Requests per backend:
+backend-1: 10 requests
+backend-2: 10 requests
+backend-3: 10 requests

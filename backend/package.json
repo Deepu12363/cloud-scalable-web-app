@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "provision:test-device": "node scripts/provisionTestDevice.js",
+    "simulate:telemetry": "node scripts/sensorSimulator.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "dependencies": {
@@ -14,7 +16,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "prom-client": "^15.1.3"
   },
   "devDependencies": {
     "jest": "^29.7.0",

@@ -1,0 +1,10 @@
+﻿Telemetry Ingestion Test
+Date: 2026-10-24 18:59:00
+Device: sim-test-fc6e3e673ea34ed77fa7e72e
+Endpoint: POST /api/telemetry
+Simulator interval: 5000 ms
+Accepted submissions: 11
+Failed submissions: 0
+HTTP response: 201 Created
+Source: simulated
+Physical sensor connected: No
