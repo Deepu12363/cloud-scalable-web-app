@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: cloudapp-backends
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - backend1:5000
+        labels:
+          instance: backend-1
+      - targets:
+          - backend2:5000
+        labels:
+          instance: backend-2
+      - targets:
+          - backend3:5000
+        labels:
+          instance: backend-3

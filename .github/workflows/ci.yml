@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -56,10 +57,13 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Run frontend tests
+        run: npm test
+
       - name: Build frontend
         run: npm run build
 
-  # Verify the existing Phase 5 Compose images can be built without pushing them.
+  # Verify the Compose images can be built without pushing them.
   docker-build:
     name: Docker build
     runs-on: ubuntu-latest
@@ -70,5 +74,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      
       - name: Build Compose images
+        env:
+          GRAFANA_ADMIN_USER: ci-admin
+          GRAFANA_ADMIN_PASSWORD: ci-only-placeholder-password
         run: docker compose build
+
+      - name: Run backend tests in the Docker test image
+        env:
+          GRAFANA_ADMIN_USER: ci-admin
+          GRAFANA_ADMIN_PASSWORD: ci-only-placeholder-password
+        run: docker compose run --build --rm backend-test

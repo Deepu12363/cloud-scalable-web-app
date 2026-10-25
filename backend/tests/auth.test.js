@@ -100,4 +100,20 @@ describe('authentication endpoints', () => {
 
     expect(response.status).toBe(401);
   });
+
+  test('returns the current user for a valid token', async () => {
+    mockUserModel.findById.mockResolvedValueOnce(user);
+
+    const token = (await import('jsonwebtoken')).default.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET
+    );
+    const response = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.email).toBe(user.email);
+    expect(response.body.user.password).toBeUndefined();
+  });
 });

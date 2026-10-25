@@ -1,5 +1,13 @@
 const API_BASE_URL = '/api';
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 const request = async (path, options = {}) => {
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -7,13 +15,14 @@ const request = async (path, options = {}) => {
         'Content-Type': 'application/json',
         ...options.headers
       },
-      ...options
+      ...options,
+      cache: 'no-store'
     });
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.message || 'The request could not be completed.');
+      throw new ApiError(data.message || 'The request could not be completed.', response.status);
     }
 
     return data;
@@ -53,3 +62,27 @@ export const getCurrentUser = (token) => request('/auth/me', {
 });
 
 export const getHealth = () => request('/health');
+
+export const getInfrastructureStatus = (token) => request('/health/infrastructure', {
+  headers: authHeaders(token)
+});
+
+export const getDevices = (token) => request('/devices', {
+  headers: authHeaders(token)
+});
+
+export const registerDevice = (token, device) => request('/devices', {
+  method: 'POST',
+  headers: authHeaders(token),
+  body: JSON.stringify(device)
+});
+
+export const getLatestTelemetry = (token, deviceId) => request(
+  `/telemetry/latest/${encodeURIComponent(deviceId)}`,
+  { headers: authHeaders(token) }
+);
+
+export const getTelemetryHistory = (token, deviceId, page = 1, limit = 10) => request(
+  `/telemetry/history/${encodeURIComponent(deviceId)}?page=${page}&limit=${limit}`,
+  { headers: authHeaders(token) }
+);

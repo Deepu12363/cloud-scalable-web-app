@@ -26,6 +26,11 @@ services:
       NODE_ENV: development
       RESET_URL_BASE: http://localhost:8081
       INSTANCE_ID: backend-1
+      BACKEND_HEALTH_URLS: "backend-1=http://backend1:5000/api/health,backend-2=http://backend2:5000/api/health,backend-3=http://backend3:5000/api/health"
+      MIN_TEMPERATURE_C: ${MIN_TEMPERATURE_C:--40}
+      MAX_TEMPERATURE_C: ${MAX_TEMPERATURE_C:-80}
+      MIN_HUMIDITY_PERCENT: ${MIN_HUMIDITY_PERCENT:-0}
+      MAX_HUMIDITY_PERCENT: ${MAX_HUMIDITY_PERCENT:-100}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -49,6 +54,11 @@ services:
       NODE_ENV: development
       RESET_URL_BASE: http://localhost:8081
       INSTANCE_ID: backend-2
+      BACKEND_HEALTH_URLS: "backend-1=http://backend1:5000/api/health,backend-2=http://backend2:5000/api/health,backend-3=http://backend3:5000/api/health"
+      MIN_TEMPERATURE_C: ${MIN_TEMPERATURE_C:--40}
+      MAX_TEMPERATURE_C: ${MAX_TEMPERATURE_C:-80}
+      MIN_HUMIDITY_PERCENT: ${MIN_HUMIDITY_PERCENT:-0}
+      MAX_HUMIDITY_PERCENT: ${MAX_HUMIDITY_PERCENT:-100}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -72,6 +82,11 @@ services:
       NODE_ENV: development
       RESET_URL_BASE: http://localhost:8081
       INSTANCE_ID: backend-3
+      BACKEND_HEALTH_URLS: "backend-1=http://backend1:5000/api/health,backend-2=http://backend2:5000/api/health,backend-3=http://backend3:5000/api/health"
+      MIN_TEMPERATURE_C: ${MIN_TEMPERATURE_C:--40}
+      MAX_TEMPERATURE_C: ${MAX_TEMPERATURE_C:-80}
+      MIN_HUMIDITY_PERCENT: ${MIN_HUMIDITY_PERCENT:-0}
+      MAX_HUMIDITY_PERCENT: ${MAX_HUMIDITY_PERCENT:-100}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -83,6 +98,18 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  backend-test:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: test
+    environment:
+      NODE_ENV: test
+      MIN_TEMPERATURE_C: ${MIN_TEMPERATURE_C:--40}
+      MAX_TEMPERATURE_C: ${MAX_TEMPERATURE_C:-80}
+      MIN_HUMIDITY_PERCENT: ${MIN_HUMIDITY_PERCENT:-0}
+      MAX_HUMIDITY_PERCENT: ${MAX_HUMIDITY_PERCENT:-100}
 
   frontend:
     build:
@@ -117,9 +144,69 @@ services:
     networks:
       - app-network
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=2GB
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      backend1:
+        condition: service_healthy
+      backend2:
+        condition: service_healthy
+      backend3:
+        condition: service_healthy
+    networks:
+      - app-network
+    mem_limit: 512m
+    cpus: 0.50
+    healthcheck:
+      test: ["CMD", "promtool", "check", "ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:?Set GRAFANA_ADMIN_USER in the root .env file}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in the root .env file}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - app-network
+    mem_limit: 384m
+    cpus: 0.50
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
   mongodb_data:
+  prometheus_data:
+  grafana_data:

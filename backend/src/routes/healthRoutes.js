@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import os from 'node:os';
+import { getInfrastructureStatus } from '../controllers/infrastructureController.js';
+import protect from '../middleware/authMiddleware.js';
 
 const router = Router();
+
+router.get('/health/infrastructure', protect, getInfrastructureStatus);
 
 router.get('/health', (req, res) => {
   res.json({

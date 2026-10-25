@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Cloud App
+    orgId: 1
+    folder: Cloud App
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards
